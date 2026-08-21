@@ -108,7 +108,7 @@ export default function WeatherForecastPage() {
     }
 
     return (
-        <main className="min-h-screen bg-linear-to-b from-slate-950 via-slate-900 to-teal-950 px-4 py-10 text-slate-100">
+        <main className="min-h-screen bg-linear-to-b from-sky-100 to-white px-4 py-10">
             <div className="max-w-2xl mx-auto">
                 <h1 className="text-3xl font-bold text-slate-800 mb-1">
                     Ramalan Cuaca

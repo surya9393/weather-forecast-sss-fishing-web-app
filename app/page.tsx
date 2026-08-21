@@ -7,7 +7,7 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-linear-to-b from-slate-950 via-slate-900 to-teal-950 px-4 py-10 text-slate-100">
       {/* Logo sederhana: kail pancing */}
-      <div className="grid justify-center items-center">
+      <div className="grid justify-center items-center gap-5">
         <div className="flex items-center gap-2">
           <svg width="28" height="28" viewBox="0 0 24 24" fill="none" className="text-[#E8720C]">
             <path
@@ -38,7 +38,7 @@ export default function Home() {
             <span className="text-[#E8720C]">adalah cerita</span>
           </h1>
           <p className="max-w-md text-lg leading-8 text-[#9FC4CC]">
-            Temukan spot mancing terbaik, catat tangkapanmu, dan terhubung
+            Temukan waktu & spot mancing terbaik, catat tangkapanmu, dan terhubung
             dengan komunitas pemancing di seluruh Indonesia — dari empang
             belakang rumah sampai laut lepas.
           </p>
@@ -55,12 +55,12 @@ export default function Home() {
         </div>
 
         {/* CTA */}
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
+        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row mt-2">
 
           <a className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#E8720C] px-6 text-[#0A2530] transition-colors hover:bg-[#f5871e] md:w-auto"
             href="/fishing/fishing-forecast"
           >
-            Mulai Ramalan Memancing
+            Lihat Ramalan Memancing
           </a>
 
           <a className="flex h-12 w-full items-center justify-center rounded-full border border-[#1C5D6E] px-6 text-[#F2ECDD] transition-colors hover:bg-white/5 md:w-auto"
