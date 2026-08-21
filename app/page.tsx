@@ -7,7 +7,7 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-linear-to-b from-slate-950 via-slate-900 to-teal-950 px-4 py-10 text-slate-100">
       {/* Logo sederhana: kail pancing */}
-      <div className="flex justify-center items-center">
+      <div className="grid justify-center items-center">
         <div className="flex items-center gap-2">
           <svg width="28" height="28" viewBox="0 0 24 24" fill="none" className="text-[#E8720C]">
             <path
