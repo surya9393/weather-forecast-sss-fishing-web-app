@@ -40,6 +40,13 @@ type DayForecast = {
     weatherScore: number;
 };
 
+// Shape of a day *before* the dataset-wide normalized scores (score, moonScore,
+// tideScore, weatherScore) are computed. Declaring this explicitly avoids
+// rawDays being inferred as `any[]` (since weatherData/marineData come from
+// `.json()`, which is `any`), which otherwise causes downstream `.map((d) => ...)`
+// callbacks to have an implicit `any` parameter under strict mode.
+type RawDay = Omit<DayForecast, "score" | "moonScore" | "tideScore" | "weatherScore">;
+
 // ---------------------------------------------------------------------------
 // Weather code -> label/icon
 // ---------------------------------------------------------------------------
@@ -102,9 +109,9 @@ function getMoonLabel(phaseValue: number): { label: string; icon: string } {
 // Helpers
 // ---------------------------------------------------------------------------
 
-function dateKey(d: Date) {
-    return d.toISOString().slice(0, 10);
-}
+// function dateKey(d: Date) {
+//     return d.toISOString().slice(0, 10);
+// }
 
 function clamp(v: number, min: number, max: number) {
     return Math.max(min, Math.min(max, v));
@@ -135,22 +142,33 @@ function ratingFromScore(score: number) {
 
 const FORECAST_DAYS = 8; // dibatasi oleh cakupan Marine API
 
+// Combined "request status" so the initial mount-triggered fetch only fires a
+// single setState from within the effect (loading + error + hasSearched used
+// to be three separate setState calls executed synchronously back-to-back
+// before the first `await`, which is what React's "calling setState
+// synchronously within an effect can trigger cascading render" warning flags).
+type RequestStatus = {
+    loading: boolean;
+    error: string | null;
+    hasSearched: boolean;
+};
+
+const INITIAL_STATUS: RequestStatus = { loading: false, error: null, hasSearched: false };
+
 export default function FishingCalendarPage() {
     const [query, setQuery] = useState("Jakarta");
     const [location, setLocation] = useState<GeoResult | null>(null);
     const [days, setDays] = useState<DayForecast[]>([]);
     const [selected, setSelected] = useState(0);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-    const [hasSearched, setHasSearched] = useState(false);
+    const [status, setStatus] = useState<RequestStatus>(INITIAL_STATUS);
+    const { loading, error, hasSearched } = status;
 
     async function loadForecast(e?: React.FormEvent) {
         e?.preventDefault();
         if (!query.trim()) return;
 
-        setLoading(true);
-        setError(null);
-        setHasSearched(true);
+        // Single setState call instead of three separate ones.
+        setStatus({ loading: true, error: null, hasSearched: true });
 
         try {
             const geoRes = await fetch(
@@ -158,9 +176,8 @@ export default function FishingCalendarPage() {
             );
             const geoData = await geoRes.json();
             if (!geoData.results || geoData.results.length === 0) {
-                setError("Lokasi tidak ditemukan. Coba nama kota pesisir lain.");
                 setDays([]);
-                setLoading(false);
+                setStatus({ loading: false, error: "Lokasi tidak ditemukan. Coba nama kota pesisir lain.", hasSearched: true });
                 return;
             }
             const place: GeoResult = geoData.results[0];
@@ -185,9 +202,8 @@ export default function FishingCalendarPage() {
             const marineData = marineOk ? await marineRes.json() : null;
 
             if (!weatherData.daily) {
-                setError("Data cuaca tidak tersedia untuk lokasi ini.");
                 setDays([]);
-                setLoading(false);
+                setStatus({ loading: false, error: "Data cuaca tidak tersedia untuk lokasi ini.", hasSearched: true });
                 return;
             }
 
@@ -220,8 +236,10 @@ export default function FishingCalendarPage() {
                 });
             }
 
-            // Build raw days first (without scores that need dataset-wide normalization)
-            const rawDays = weatherData.daily.time.map((t: string, i: number) => {
+            // Build raw days first (without scores that need dataset-wide normalization).
+            // Explicitly typed as RawDay[] so downstream `.map((d) => ...)` calls infer
+            // `d: RawDay` instead of `any` (weatherData/marineData are `any` from .json()).
+            const rawDays: RawDay[] = weatherData.daily.time.map((t: string, i: number) => {
                 const d = new Date(t + "T12:00:00");
                 const key = t;
 
@@ -308,18 +326,26 @@ export default function FishingCalendarPage() {
 
             setDays(finalDays);
             setSelected(0);
+            setStatus({ loading: false, error: null, hasSearched: true });
         } catch (err) {
             console.error(err);
-            setError("Terjadi kesalahan saat mengambil data ramalan.");
             setDays([]);
-        } finally {
-            setLoading(false);
+            setStatus({ loading: false, error: "Terjadi kesalahan saat mengambil data ramalan.", hasSearched: true });
         }
     }
 
     // Auto-load default location on first mount
     useEffect(() => {
-        loadForecast();
+        // loadForecast's first statement is a synchronous setStatus(...) call.
+        // Calling loadForecast() directly here would run that setState as part
+        // of the effect's own synchronous execution, which is what triggers
+        // "calling setState synchronously within an effect can trigger
+        // cascading render". Deferring with setTimeout(..., 0) pushes the call
+        // (and its setState) into a separate task, breaking that chain.
+        const timeoutId = setTimeout(() => {
+            void loadForecast();
+        }, 0);
+        return () => clearTimeout(timeoutId);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -331,7 +357,7 @@ export default function FishingCalendarPage() {
     const selectedDay = days[selected];
 
     return (
-        <main className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-teal-950 px-4 py-10 text-slate-100">
+        <main className="min-h-screen bg-linear-to-b from-slate-950 via-slate-900 to-teal-950 px-4 py-10 text-slate-100">
             <div className="max-w-5xl mx-auto">
                 <p className="text-xs uppercase tracking-widest text-teal-400 font-semibold mb-1">
                     Solunar &middot; Pasang Surut &middot; Cuaca
@@ -408,8 +434,8 @@ export default function FishingCalendarPage() {
                                         key={d.dateKey}
                                         onClick={() => setSelected(i)}
                                         className={`rounded-xl px-3 py-4 text-center border transition-all ${isSelected
-                                                ? `border-teal-400 bg-teal-500/10 ring-1 ${rating.ring}`
-                                                : "border-slate-800 bg-slate-900/50 hover:border-slate-700"
+                                            ? `border-teal-400 bg-teal-500/10 ring-1 ${rating.ring}`
+                                            : "border-slate-800 bg-slate-900/50 hover:border-slate-700"
                                             }`}
                                     >
                                         <p className="text-[11px] text-slate-400">
@@ -498,8 +524,8 @@ export default function FishingCalendarPage() {
                                                 <span
                                                     key={i}
                                                     className={`text-xs rounded-full px-3 py-1 border ${ex.type === "high"
-                                                            ? "border-teal-500/30 bg-teal-500/10 text-teal-300"
-                                                            : "border-slate-600 bg-slate-800 text-slate-300"
+                                                        ? "border-teal-500/30 bg-teal-500/10 text-teal-300"
+                                                        : "border-slate-600 bg-slate-800 text-slate-300"
                                                         }`}
                                                 >
                                                     {ex.type === "high" ? "🔼 Pasang" : "🔽 Surut"}{" "}
