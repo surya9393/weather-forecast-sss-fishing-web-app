@@ -108,7 +108,7 @@ export default function MoonPhaseForecastPage() {
     );
 
     return (
-        <main className="min-h-screen bg-linear-to-b from-slate-900 to-slate-800 px-4 py-10 text-slate-100">
+        <main className="min-h-screen bg-linear-to-b from-slate-950 via-slate-900 to-teal-950 px-4 py-10 text-slate-100">
             <div className="max-w-3xl mx-auto">
                 <h1 className="text-3xl font-bold mb-1">Ramalan Fase Bulan</h1>
                 <p className="text-slate-400 mb-6">

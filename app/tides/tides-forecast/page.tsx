@@ -168,7 +168,7 @@ export default function TidesForecastPage() {
     const upcomingExtremes = extremes.slice(0, 6);
 
     return (
-        <main className="min-h-screen bg-linear-to-b from-cyan-50 to-white px-4 py-10">
+        <main className="min-h-screen bg-linear-to-b from-slate-950 via-slate-900 to-teal-950 px-4 py-10 text-slate-100">
             <div className="max-w-3xl mx-auto">
                 <h1 className="text-3xl font-bold text-slate-800 mb-1">
                     Ramalan Pasang Surut
@@ -267,8 +267,8 @@ export default function TidesForecastPage() {
                                         <div
                                             key={i}
                                             className={`rounded-lg px-4 py-3 border ${ex.type === "high"
-                                                    ? "bg-cyan-50 border-cyan-200"
-                                                    : "bg-slate-50 border-slate-200"
+                                                ? "bg-cyan-50 border-cyan-200"
+                                                : "bg-slate-50 border-slate-200"
                                                 }`}
                                         >
                                             <p className="text-xs font-medium text-slate-500">

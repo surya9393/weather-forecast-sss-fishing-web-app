@@ -5,7 +5,7 @@ const mono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-mono" });
 
 export default function Home() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-[#0A2530] h-full min-h-screen">
+    <div className="flex flex-col flex-1 items-center justify-center bg-[#0A2530] w-full min-h-screen">
       <main className="min-h-screen bg-linear-to-b from-slate-950 via-slate-900 to-teal-950 px-4 py-10 text-slate-100">
         {/* Logo sederhana: kail pancing */}
         <div className="flex items-center gap-2">
